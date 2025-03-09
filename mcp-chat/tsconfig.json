@@ -1,0 +1,25 @@
+{
+  "files": [],
+  "compilerOptions": {
+    "module": "es2022",
+    "target": "es2017",
+    "lib": [
+        "es6",
+        "dom",
+        "ES2015"
+      ],
+      "types": [
+        "node"
+      ],
+      "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "allowSyntheticDefaultImports": true,
+      "useUnknownInCatchVariables": false,
+      "strict": true,
+      "outDir": "./dist",
+      "rootDir": "./src"
+  },
+  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.web.json" }]
+}

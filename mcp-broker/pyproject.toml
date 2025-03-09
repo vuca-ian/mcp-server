@@ -1,0 +1,15 @@
+[project]
+name = "mcp-broker"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "asyncio>=3.4.3",
+    "fastapi>=0.115.11",
+    "ollama>=0.4.7",
+    "openai>=1.65.4",
+    "python-dotenv>=1.0.1",
+    "sse-starlette>=2.2.1",
+    "uvicorn>=0.34.0",
+]
