@@ -26,6 +26,9 @@ class Datasource(metaclass=ABCMeta):
     async def initialize(self):
         pass
 
+
+    def getSchema(self):
+        return self._properties.get("schema")
     @log
     @abstractmethod
     def query(self, query, params=None):
