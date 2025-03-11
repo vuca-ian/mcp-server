@@ -15,8 +15,8 @@ class MCPClient:
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
         self.client = AsyncOpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key="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",
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            api_key="sk-ba00f1e93eec43659d8e381dff425945",
         )
 
     async def connect_to_sse_server(self, server_url: str):

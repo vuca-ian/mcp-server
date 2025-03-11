@@ -38,7 +38,7 @@ async def startup_event():
     await pg.initialize()
     logger.info("PostgreSQL connection pool initialized")
 async def get_tables(request:Request):
-    """异步查询示例"""
+    """List all database tables"""
     try:
         pg = getPool(request)
         results = await pg.query(
@@ -56,15 +56,23 @@ mcp = FastMCP(MCP_SERVER_NAME)
 pg = createDatasource(pg_config()) 
 @mcp.tool()
 async def list_tables():
+    """List all database tables"""
     results = await pg.query(
         "SELECT * FROM pg_tables WHERE schemaname = $1",
         (pg.getSchema(),)
     )
     return results
 
-def create_starlette_app(mcp_server: Server, *, debug: bool = False):
+@mcp.tool()
+async def list_data(table: str):
+    """List all table data"""
+    results = await pg.query(f"SELECT * FROM {table}", ())
+    return results
+
+def create_starlette_app():
     """Create a Starlette application that can server the provied mcp server with SSE."""
     sse = SseServerTransport("/messages/")
+    mcp_server = mcp._mcp_server
     async def handle_sse(request: Request) -> None:
         async with sse.connect_sse(
                 request.scope,
@@ -89,13 +97,13 @@ def create_starlette_app(mcp_server: Server, *, debug: bool = False):
     app.state.pg_client = pg
     return app
 if __name__ == "__main__":
-    mcp_server = mcp._mcp_server
+    # mcp_server = mcp._mcp_server
     parser = argparse.ArgumentParser(description='Run MCP SSE-based server')
     parser.add_argument('--host', default='0.0.0.0', help='Host to bind to')
     parser.add_argument('--port', type=int, default=18080, help='Port to listen on')
     args = parser.parse_args()
     logger.info("MCP server started")
-    starlette_app = create_starlette_app(mcp_server, debug=True)
+    # starlette_app = create_starlette_app(mcp_server, debug=True)
 
-    uvicorn.run(starlette_app, host=args.host, port=args.port)
-    # uvicorn.run("server:create_starlette_app", host=args.host, port=args.port,reload=True)
+    # uvicorn.run(starlette_app, host=args.host, port=args.port)
+    uvicorn.run("server:create_starlette_app", host=args.host, port=args.port,reload=True)

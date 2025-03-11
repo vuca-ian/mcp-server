@@ -15,8 +15,8 @@ class MCPClient:
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
         self.client = AsyncOpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=os.getenv("OPENAI_API_KEY"),
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            api_key="sk-ba00f1e93eec43659d8e381dff425945",
         )
 
     async def connect_to_sse_server(self, server_url: str):
@@ -66,7 +66,7 @@ class MCPClient:
 
         # Initial OpenAI API call
         response = await self.client.chat.completions.create(
-            model="qwen/qwen-plus",
+            model="qwen-plus",
             messages=messages,
             tools=available_tools
         )
@@ -111,7 +111,7 @@ class MCPClient:
 
             # Get next response from OpenAI
             response = await self.client.chat.completions.create(
-                model="qwen/qwen-plus",
+                model="qwen-plus",
                 messages=messages,
                 tools=available_tools
             )
