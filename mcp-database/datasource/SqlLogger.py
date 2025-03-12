@@ -3,7 +3,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-def sql_print(query: str,params:dict):
+def sql_print(query: str,*params:dict):
     if not params:
         return 'None'
     

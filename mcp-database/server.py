@@ -43,11 +43,20 @@ async def get_tables(request:Request):
         pg = getPool(request)
         results = await pg.query(
             "SELECT * FROM pg_tables WHERE schemaname = $1",
-            (pg.getSchema(),)
+            pg.getSchema()
         )
         return JSONResponse({"tables": [dict(r) for r in results]})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+async def get_table_columns_schema(request: Request):
+    """Get table columns"""
+    table = request.path_params.get("table")
+    results = await pg.query(
+        f"SELECT column_name FROM information_schema.columns WHERE table_name = $1 and table_schema = $2",
+        table, pg.getSchema()
+    )
+    return JSONResponse({"tables": [dict(r) for r in results]})
 
 def getPool(request):
     return request.app.state.pg_client    
@@ -59,9 +68,18 @@ async def list_tables():
     """List all database tables"""
     results = await pg.query(
         "SELECT * FROM pg_tables WHERE schemaname = $1",
-        (pg.getSchema(),)
+        pg.getSchema()
     )
     return results
+
+@mcp.tool()
+async def get_table_columns(table: str):
+    """Get table columns"""
+    results = await pg.query(
+        f"SELECT column_name FROM information_schema.columns WHERE table_name = $1 and table_schema = $2",
+        table, pg.getSchema()
+    )
+    return [dict(r) for r in results]
 
 @mcp.tool()
 async def list_data(table: str):
@@ -69,10 +87,16 @@ async def list_data(table: str):
     results = await pg.query(f"SELECT * FROM {table}", ())
     return results
 
+@mcp.tool()
+async def query_data(query: str, args):
+    """Query data by sql query and args"""
+    results = await pg.query(query, args)
+    return results
+
 def create_starlette_app():
     """Create a Starlette application that can server the provied mcp server with SSE."""
     sse = SseServerTransport("/messages/")
-    mcp_server = mcp._mcp_server
+    mcp_server:Server = mcp._mcp_server
     async def handle_sse(request: Request) -> None:
         async with sse.connect_sse(
                 request.scope,
@@ -87,6 +111,7 @@ def create_starlette_app():
     app = Starlette(
         debug=True,
         routes=[
+             Route("/{table}/schema", get_table_columns_schema),
             Route("/tables/", get_tables),
             Route("/sse", endpoint=handle_sse),
             Mount("/messages/", app=sse.handle_post_message),
@@ -103,7 +128,4 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=18080, help='Port to listen on')
     args = parser.parse_args()
     logger.info("MCP server started")
-    # starlette_app = create_starlette_app(mcp_server, debug=True)
-
-    # uvicorn.run(starlette_app, host=args.host, port=args.port)
     uvicorn.run("server:create_starlette_app", host=args.host, port=args.port,reload=True)

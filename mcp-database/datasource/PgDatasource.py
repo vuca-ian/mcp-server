@@ -16,7 +16,7 @@ class PostgresDatasource(Datasource):
             )
 
     @log
-    async def query(self, query, params=None):
+    async def query(self, query, *params):
         try:
             async with self._pool.acquire() as conn:
                 if query.strip().lower().startswith("select"):

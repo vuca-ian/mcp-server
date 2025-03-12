@@ -5,7 +5,7 @@ from .SqlLogger import sql_print
 
 def log(func):
     def wrapper(self, *args, **kwargs):
-        sql_print(args[0],[args[1]])
+        sql_print(args[0],*args[1:],**kwargs)
         result = func(self, *args, **kwargs)
         return result
     return wrapper
@@ -31,7 +31,7 @@ class Datasource(metaclass=ABCMeta):
         return self._properties.get("schema")
     @log
     @abstractmethod
-    def query(self, query, params=None):
+    def query(self, query, *params):
         print("query---->")
         pass
 
