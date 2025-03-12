@@ -5,7 +5,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 def sql_print(query: str,*params:dict):
     if not params:
-        return 'None'
+        logger.info("Executing query: \nSQL:\t  %s\nPARAMETES:None", query)
+        return
     
     formatted = []
     for idx, param in enumerate(params, 1):

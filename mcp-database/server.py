@@ -5,6 +5,7 @@ from starlette.routing import Route, Mount
 from mcp.server.fastmcp import FastMCP
 from mcp.server.sse import SseServerTransport
 from mcp.server import Server
+from datetime import datetime
 from dotenv import load_dotenv
 from datasource import createDatasource,Datasource
 import logging
@@ -45,9 +46,9 @@ async def get_tables(request:Request):
             "SELECT * FROM pg_tables WHERE schemaname = $1",
             pg.getSchema()
         )
-        return JSONResponse({"tables": [dict(r) for r in results]})
+        return JSONResponse({"data": [dict(r) for r in results]})
     except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"message": str(e)}, status_code=500)
 
 async def get_table_columns_schema(request: Request):
     """Get table columns"""
@@ -56,7 +57,19 @@ async def get_table_columns_schema(request: Request):
         f"SELECT column_name FROM information_schema.columns WHERE table_name = $1 and table_schema = $2",
         table, pg.getSchema()
     )
-    return JSONResponse({"tables": [dict(r) for r in results]})
+    return JSONResponse({"data": [dict(r) for r in results]})
+
+async def get_data(request: Request):
+    """execute sql """
+    sql = request.query_params.get("sql")
+    results = await pg.query(sql)
+    return JSONResponse({"data": [dict(date_format(r)) for r in results]})
+
+def date_format(obj):
+    return {
+        key: value.isoformat() if isinstance(value, datetime) else value
+        for key, value in obj.items()
+    }
 
 def getPool(request):
     return request.app.state.pg_client    
@@ -84,14 +97,14 @@ async def get_table_columns(table: str):
 @mcp.tool()
 async def list_data(table: str):
     """List all table data"""
-    results = await pg.query(f"SELECT * FROM {table}", ())
+    results = await pg.query(f"SELECT * FROM {table}")
     return results
 
 @mcp.tool()
-async def query_data(query: str, args):
+async def query_data(query: str, *args):
     """Query data by sql query and args"""
-    results = await pg.query(query, args)
-    return results
+    results = await pg.query(query, *args)
+    return [dict(date_format(r)) for r in results]
 
 def create_starlette_app():
     """Create a Starlette application that can server the provied mcp server with SSE."""
@@ -111,7 +124,8 @@ def create_starlette_app():
     app = Starlette(
         debug=True,
         routes=[
-             Route("/{table}/schema", get_table_columns_schema),
+            Route("/data", get_data),
+            Route("/{table}/schema", get_table_columns_schema),
             Route("/tables/", get_tables),
             Route("/sse", endpoint=handle_sse),
             Mount("/messages/", app=sse.handle_post_message),

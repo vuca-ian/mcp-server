@@ -1,22 +1,21 @@
 from contextlib import AsyncExitStack
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
 from openai import AsyncOpenAI
 from typing import Optional
 from dotenv import load_dotenv
-import asyncio
-import sys
-import os
+from mcp import ClientSession
+from mcp.client.sse import sse_client
 import json
+import os
 
 class MCPClient:
     def __init__(self):
+        load_dotenv()
         # Initialize session and client objects
         self.session: Optional[ClientSession] = None
         self.exit_stack = AsyncExitStack()
         self.client = AsyncOpenAI(
-            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-            api_key="sk-ba00f1e93eec43659d8e381dff425945",
+            base_url=os.getenv("OPENAI_API_BASE"),
+            api_key=os.getenv("OPENAI_API_KEY"),
         )
 
     async def connect_to_sse_server(self, server_url: str):
@@ -66,7 +65,7 @@ class MCPClient:
 
         # Initial OpenAI API call
         response = await self.client.chat.completions.create(
-            model="qwen/qwen-plus",
+            model="qwen-plus",
             messages=messages,
             tools=available_tools
         )
@@ -111,7 +110,7 @@ class MCPClient:
 
             # Get next response from OpenAI
             response = await self.client.chat.completions.create(
-                model="qwen/qwen-plus",
+                model="qwen-plus",
                 messages=messages,
                 tools=available_tools
             )
