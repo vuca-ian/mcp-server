@@ -35,6 +35,8 @@ class MCPClient:
         print("Listing tools...")
         response = await self.session.list_tools()
         tools = response.tools
+        prompt =await self.session.get_prompt(name="db-prompt")
+        print(prompt)
         print("\nConnected to server with tools:", [tool.name for tool in tools])
 
     async def cleanup(self):

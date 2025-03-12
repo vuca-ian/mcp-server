@@ -29,6 +29,9 @@ class Datasource(metaclass=ABCMeta):
 
     def getSchema(self):
         return self._properties.get("schema")
+
+    def getType(self):
+        return self._properties.get("type")
     @log
     @abstractmethod
     def query(self, query, *params):

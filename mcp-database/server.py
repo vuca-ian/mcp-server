@@ -8,6 +8,7 @@ from mcp.server import Server
 from datetime import datetime
 from dotenv import load_dotenv
 from datasource import createDatasource,Datasource
+import mcp.types as types
 import logging
 import uvicorn
 import argparse
@@ -101,10 +102,35 @@ async def list_data(table: str):
     return results
 
 @mcp.tool()
-async def query_data(query: str, *args):
+async def query_data(query: str, args=None):
     """Query data by sql query and args"""
-    results = await pg.query(query, *args)
+    results = await pg.query(query, args)
     return [dict(date_format(r)) for r in results]
+
+@mcp.prompt(name="db-prompt")
+def db_propmpt():
+    return f"""You are a {pg.getType()} database assistant.
+You can query the database by sql query and args.
+You can list all database tables by calling the `list_tables` tool.
+You can list all table columns by calling the `get_table_columns` tool.
+You can list all table data by calling the `list_data` tool.    
+"""
+
+# @mcp.list_prompts()
+# async def handle_list_prompts() -> list[types.Prompt]:
+#     return [
+#         types.Prompt(
+#             name="example-prompt",
+#             description="An example prompt template",
+#             arguments=[
+#                 types.PromptArgument(
+#                     name="arg1",
+#                     description="Example argument",
+#                     required=True
+#                 )
+#             ]
+#         )
+#     ]
 
 def create_starlette_app():
     """Create a Starlette application that can server the provied mcp server with SSE."""
